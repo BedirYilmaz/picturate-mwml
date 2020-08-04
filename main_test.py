@@ -4,6 +4,8 @@ from miscc.config import cfg, cfg_from_file
 from datasets import TextDataset
 import trainer
 
+import tester
+
 import os
 import sys
 import time
@@ -16,6 +18,8 @@ import numpy as np
 
 import torch
 import torchvision.transforms as transforms
+
+import matplotlib.pyplot as plt
 
 dir_path = (os.path.abspath(os.path.join(os.path.realpath(__file__), './.')))
 sys.path.append(dir_path)
@@ -33,20 +37,68 @@ def parse_args():
     return args
 
 
-def gen_example(wordtoix, algo):
+def gen_example(wordtoix, algo, sentences = ['this bird is red with white and has a very short beak']):
+    '''generate images from example sentences'''
+    from nltk.tokenize import RegexpTokenizer
+    # filepath = '%s/example_filenames.txt' % (cfg.DATA_DIR)
+    data_dic = {}
+    captions = []
+    cap_lens = []
+    for sent in sentences:
+        if len(sent) == 0:
+            continue
+        sent = sent.replace("\ufffd\ufffd", " ")
+        tokenizer = RegexpTokenizer(r'\w+')
+        tokens = tokenizer.tokenize(sent.lower())
+        if len(tokens) == 0:
+            print('sent', sent)
+            continue
+
+        rev = []
+        for t in tokens:
+            t = t.encode('ascii', 'ignore').decode('ascii')
+            if len(t) > 0 and t in wordtoix:
+                rev.append(wordtoix[t])
+        captions.append(rev)
+        cap_lens.append(len(rev))
+    max_len = np.max(cap_lens)
+
+    sorted_indices = np.argsort(cap_lens)[::-1]
+    cap_lens = np.asarray(cap_lens)
+    cap_lens = cap_lens[sorted_indices]
+    cap_array = np.zeros((len(captions), max_len), dtype='int64')
+    for i in range(len(captions)):
+        idx = sorted_indices[i]
+        cap = captions[idx]
+        c_len = len(cap)
+        cap_array[i, :c_len] = cap
+    key = "text_description"
+    data_dic[key] = [cap_array, cap_lens, sorted_indices]
+    fake_im, _ = algo.generate_fake_im(data_dic)
+
+    fake_imt = np.transpose(fake_im[2].squeeze(0).data.cpu().numpy(), (1, 2, 0))
+
+    plt.imshow(fake_imt)
+    plt.show()
+
+
+
+
+def _gen_example(wordtoix, algo):
     '''generate images from example sentences'''
     from nltk.tokenize import RegexpTokenizer
     filepath = '%s/example_filenames.txt' % (cfg.DATA_DIR)
     data_dic = {}
     with open(filepath, "r") as f:
-        filenames = f.read().decode('utf8').split('\n')
+        # filenames = f.read().decode('utf8').split('\n')
+        filenames = f.read().split('\n')
         for name in filenames:
             if len(name) == 0:
                 continue
             filepath = '%s/%s.txt' % (cfg.DATA_DIR, name)
             with open(filepath, "r") as f:
                 print('Load from:', name)
-                sentences = f.read().decode('utf8').split('\n')
+                sentences = f.read().split('\n')
                 # a list of indices for a sentence
                 captions = []
                 cap_lens = []
@@ -81,6 +133,7 @@ def gen_example(wordtoix, algo):
             key = name[(name.rfind('/') + 1):]
             data_dic[key] = [cap_array, cap_lens, sorted_indices]
     algo.gen_example(data_dic)
+
 
 
 if __name__ == "__main__":
@@ -132,18 +185,16 @@ if __name__ == "__main__":
         dataset, batch_size=cfg.TRAIN.BATCH_SIZE,
         drop_last=True, shuffle=bshuffle, num_workers=int(cfg.WORKERS))
 
+    sentence = input('please type in the text description for the bird to be generated\n')
+
     # Define models and go to train/evaluate
-    trainer_ = getattr(trainer, cfg.TRAIN.TRAINER)
-    algo = trainer_(output_dir, dataloader, dataset.n_words, dataset.ixtoword)
+    tester_ = getattr(tester, cfg.TRAIN.TESTER)
+    algo = tester_(output_dir, dataloader, dataset.n_words, dataset.ixtoword)
 
     start_t = time.time()
-    if cfg.TRAIN.FLAG:
-        algo.train()
-    else:
+
     '''generate images from pre-extracted embeddings'''
-    if cfg.B_VALIDATION:
-        algo.sampling(split_dir)  # generate images for the whole valid dataset
-    else:
-        gen_example(dataset.wordtoix, algo)  # generate images for customized captions
+    gen_example(dataset.wordtoix, algo, [sentence])  # generate images for customized captions
+
     end_t = time.time()
-    print('Total time for training:', end_t - start_t)
+    print('Total time for generation:', end_t - start_t)
