@@ -25,18 +25,6 @@ dir_path = (os.path.abspath(os.path.join(os.path.realpath(__file__), './.')))
 sys.path.append(dir_path)
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description='Train a AttnGAN network')
-    parser.add_argument('--cfg', dest='cfg_file',
-                        help='optional config file',
-                        default='cfg/bird_attn2.yaml', type=str)
-    parser.add_argument('--gpu', dest='gpu_id', type=int, default=0)
-    parser.add_argument('--data_dir', dest='data_dir', type=str, default='data/birds')
-    parser.add_argument('--manualSeed', type=int, default=0, help='manual seed')
-    args = parser.parse_args()
-    return args
-
-
 def gen_example(wordtoix, algo, sentences = ['this bird is red with white and has a very short beak']):
     '''generate images from example sentences'''
     from nltk.tokenize import RegexpTokenizer
