@@ -81,10 +81,7 @@ def gen_example(wordtoix, algo, sentences = ['this bird is red with white and ha
     plt.imshow(fake_imt)
     plt.show()
 
-
-
-
-def _gen_example(wordtoix, algo):
+def gen_example_from_predefined_sentences(wordtoix, algo):
     '''generate images from example sentences'''
     from nltk.tokenize import RegexpTokenizer
     filepath = '%s/example_filenames.txt' % (cfg.DATA_DIR)
@@ -134,41 +131,17 @@ def _gen_example(wordtoix, algo):
             data_dic[key] = [cap_array, cap_lens, sorted_indices]
     algo.gen_example(data_dic)
 
-
-
 if __name__ == "__main__":
-    args = parse_args()
-    if args.cfg_file is not None:
-        cfg_from_file(args.cfg_file)
+    
+    cfg_path = "cfg/bird_cycle.yaml"
 
-    if args.gpu_id != -1:
-        cfg.GPU_ID = args.gpu_id
-    else:
-        cfg.CUDA = False
+    cfg_from_file(cfg_path)
+    cfg.GPU_ID = 0
+    cfg.DATA_DIR = 'data/birds'
 
-    if args.data_dir != '':
-        cfg.DATA_DIR = args.data_dir
-    print('Using config:')
-    pprint.pprint(cfg)
-
-    if not cfg.TRAIN.FLAG:
-        args.manualSeed = 100
-    elif args.manualSeed is None:
-        args.manualSeed = random.randint(1, 10000)
-    random.seed(args.manualSeed)
-    np.random.seed(args.manualSeed)
-    torch.manual_seed(args.manualSeed)
-    if cfg.CUDA:
-        torch.cuda.manual_seed_all(args.manualSeed)
-
-    now = datetime.datetime.now(dateutil.tz.tzlocal())
-    timestamp = now.strftime('%Y_%m_%d_%H_%M_%S')
-    output_dir = 'output/%s_%s_%s' % \
-        (cfg.DATASET_NAME, cfg.CONFIG_NAME, timestamp)
 
     split_dir, bshuffle = 'train', True
     if not cfg.TRAIN.FLAG:
-        # bshuffle = False
         split_dir = 'test'
 
     # Get data loader
@@ -187,14 +160,9 @@ if __name__ == "__main__":
 
     sentence = input('please type in the text description for the bird to be generated\n')
 
-    # Define models and go to train/evaluate
+    # Define models and go to evaluate
     tester_ = getattr(tester, cfg.TRAIN.TESTER)
-    algo = tester_(output_dir, dataloader, dataset.n_words, dataset.ixtoword)
-
-    start_t = time.time()
+    algo = tester_("bird_gen_test", dataloader, dataset.n_words, dataset.ixtoword)
 
     '''generate images from pre-extracted embeddings'''
     gen_example(dataset.wordtoix, algo, [sentence])  # generate images for customized captions
-
-    end_t = time.time()
-    print('Total time for generation:', end_t - start_t)
