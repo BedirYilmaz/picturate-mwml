@@ -15,6 +15,7 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from miscc.config import cfg
 from GlobalAttention import GlobalAttentionGeneral as ATT_NET
 from pytorch_pretrained_bert import BertModel
+from transformers import BertModel as HBertModel
 
 
 class Upsample(nn.Module):
@@ -184,7 +185,8 @@ class RNN_ENCODER(nn.Module):
 
 class BERT_RNN_ENCODER(RNN_ENCODER):
     def define_module(self):
-        self.encoder = BertModel.from_pretrained('bert-base-uncased')
+        # self.encoder = BertModel.from_pretrained('bert-base-uncased')
+        self.encoder = HBertModel.from_pretrained('bert-base-uncased')
         for param in self.encoder.parameters():
             param.requires_grad = False
         self.bert_linear = nn.Linear(768, self.ninput)
@@ -215,7 +217,8 @@ class BERT_RNN_ENCODER(RNN_ENCODER):
     def forward(self, captions, cap_lens, hidden, mask=None):
         # input: torch.LongTensor of size batch x n_steps
         # --> emb: batch x n_steps x ninput
-        emb, _ = self.encoder(captions, output_all_encoded_layers=False)
+        # emb, _ = self.encoder(captions, output_all_encoded_layers=False)
+        emb, _ = self.encoder(captions)
         emb = self.bert_linear(emb)
         emb = self.drop(emb)
         #

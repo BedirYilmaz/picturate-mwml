@@ -60,14 +60,16 @@ def gen_example(wordtoix, algo, sentences = ['this bird is red with white and ha
         cap = captions[idx]
         c_len = len(cap)
         cap_array[i, :c_len] = cap
-    key = "text_description"
+    key = sent
     data_dic[key] = [cap_array, cap_lens, sorted_indices]
-    fake_im, _ = algo.generate_fake_im(data_dic)
 
-    fake_imt = np.transpose(fake_im[2].squeeze(0).data.cpu().numpy(), (1, 2, 0))
+    algo.generate_fake_images_with_incremental_noise(data_dic)
+    # fake_im, _ = algo.generate_fake_im(data_dic)
 
-    plt.imshow(fake_imt)
-    plt.show()
+    # fake_imt = np.transpose(fake_im[2].squeeze(0).data.cpu().numpy(), (1, 2, 0))
+
+    # plt.imshow(fake_imt)
+    # plt.show()
 
 def gen_example_from_predefined_sentences(wordtoix, algo):
     '''generate images from example sentences'''
@@ -146,7 +148,10 @@ if __name__ == "__main__":
         dataset, batch_size=cfg.TRAIN.BATCH_SIZE,
         drop_last=True, shuffle=bshuffle, num_workers=int(cfg.WORKERS))
 
-    sentence = input('please type in the text description for the bird to be generated\n')
+    # sentence = input('please type in the text description for the bird to be generated\n')
+
+    sentence = "this seagull has white wide wings and a large white chest and a long beak"
+
 
     # Define models and go to evaluate
     tester_ = getattr(tester, cfg.TRAIN.TESTER)

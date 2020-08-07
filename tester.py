@@ -90,13 +90,13 @@ class CycleGANTester(condGANTrainer):
 
             batch_size = captions.shape[0]
             nz = cfg.GAN.Z_DIM
-            captions = Variable(torch.from_numpy(captions), volatile=True)
-            cap_lens = Variable(torch.from_numpy(cap_lens), volatile=True)
+            captions = Variable(torch.from_numpy(captions))
+            cap_lens = Variable(torch.from_numpy(cap_lens))
 
             captions = captions.cuda()
             cap_lens = cap_lens.cuda()
             for i in range(1):  # 16
-                noise = Variable(torch.FloatTensor(batch_size, nz), volatile=True)
+                noise = Variable(torch.FloatTensor(batch_size, nz))
                 noise = noise.cuda()
                 #######################################################
                 # (1) Extract text embeddings
@@ -159,13 +159,13 @@ class CycleGANTester(condGANTrainer):
 
                 batch_size = captions.shape[0]
                 nz = cfg.GAN.Z_DIM
-                captions = Variable(torch.from_numpy(captions), volatile=True)
-                cap_lens = Variable(torch.from_numpy(cap_lens), volatile=True)
+                captions = Variable(torch.from_numpy(captions))
+                cap_lens = Variable(torch.from_numpy(cap_lens))
 
                 captions = captions.cuda()
                 cap_lens = cap_lens.cuda()
                 for i in range(1):  # 16
-                    noise = Variable(torch.FloatTensor(batch_size, nz), volatile=True)
+                    noise = Variable(torch.FloatTensor(batch_size, nz))
                     noise = noise.cuda()
                     #######################################################
                     # (1) Extract text embeddings
@@ -211,4 +211,84 @@ class CycleGANTester(condGANTrainer):
                                 im = Image.fromarray(img_set)
                                 fullpath = '%s_a%d.png' % (save_name, k)
                                 im.save(fullpath)
+        
+    def generate_fake_images_with_incremental_noise(self, data_dic):
+
+        global text_encoder_path, net_G_path
+
+        # Build and load the generator
+        #####################################
+        ## load the encoder                 #
+        #####################################
+        text_encoder = \
+            BERT_RNN_ENCODER(self.n_words, nhidden=cfg.TEXT.EMBEDDING_DIM)
+        state_dict = \
+            torch.load(text_encoder_path,
+                        map_location=lambda storage, loc: storage)
+        text_encoder.load_state_dict(state_dict)
+
+        print('Loaded text encoder from:', text_encoder_path)
+        text_encoder.eval()
+        text_encoder = text_encoder.cuda()
+
+
+        netG = G_NET()
+        ######################################
+        ## load the generator                #
+        ######################################
+
+        state_dict = \
+                        torch.load(net_G_path, map_location=lambda storage, loc: storage)
+        netG.load_state_dict(state_dict)
+        print('Load Generator from: ', net_G_path)
+        s_tmp = net_G_path[:net_G_path.rfind('.pth')]
+
+
+        netG.cuda()
+        netG.eval()
+        for key in data_dic:
+            save_dir = '%s/%s' % (s_tmp, key)
+            mkdir_p(save_dir)
+            captions, cap_lens, sorted_indices = data_dic[key]
+
+            batch_size = captions.shape[0]
+            nz = cfg.GAN.Z_DIM
+            captions = Variable(torch.from_numpy(captions))
+            cap_lens = Variable(torch.from_numpy(cap_lens))
+
+            captions = captions.cuda()
+            cap_lens = cap_lens.cuda()
+            base_noise = Variable(torch.FloatTensor(batch_size, nz))
+            base_noise = base_noise.cuda()
+            
+            for i in range(1000):  # 16
+                noise = base_noise.clone()
+                noise[0][i%100] = base_noise[0][i%100] + torch.mean(base_noise)
+                #######################################################
+                # (1) Extract text embeddings
+                ######################################################
+                hidden = text_encoder.init_hidden(batch_size)
+                # words_embs: batch_size x nef x seq_len
+                # sent_emb: batch_size x nef
+                words_embs, sent_emb = text_encoder(captions, cap_lens, hidden)
+                mask = (captions == 0)
+                #######################################################
+                # (2) Generate fake images
+                ######################################################
+                noise.data.normal_(0, 1)
+                fake_imgs, attention_maps, _, _ = netG(noise, sent_emb, words_embs, mask)
+                
+
+                im = fake_imgs[2].squeeze(0).data.cpu().numpy()
+                im = (im + 1.0) * 127.5
+                im = im.astype(np.uint8)
+                # print('im', im.shape)
+                im = np.transpose(im, (1, 2, 0))
+                # print('im', im.shape)
+                im = Image.fromarray(im)
+               
+                fullpath = os.path.join(save_dir, '{0}.png'.format(i))
+
+                im.save(fullpath)
+                
 
