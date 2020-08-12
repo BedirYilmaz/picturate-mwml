@@ -110,6 +110,7 @@ ENV/
 # input data, saved log, checkpoints
 # data/
 images/
+attributes/
 input/
 saved/
 datasets/
