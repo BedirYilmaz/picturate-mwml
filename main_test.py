@@ -121,11 +121,22 @@ def gen_example_from_predefined_sentences(wordtoix, algo):
             data_dic[key] = [cap_array, cap_lens, sorted_indices]
     algo.gen_example(data_dic)
 
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Generate images from text descriptions with Cycle-Image-GAN')
+    parser.add_argument('--desc', type=str, default='this seagull has white wide wings and a large white chest and a long beak', help='manual seed')
+    args = parser.parse_args()
+    return args
+
+
+
 if __name__ == "__main__":
 
     # print(os.getcwd())
     # exit(0)
-    
+    args = parse_args()
+
     cfg_path = "cfg/bird_cycle.yaml"
 
     cfg_from_file(cfg_path)
@@ -153,8 +164,7 @@ if __name__ == "__main__":
 
     # sentence = input('please type in the text description for the bird to be generated\n')
 
-    sentence = "this seagull has white wide wings and a large white chest and a long beak"
-
+    sentence = args.desc
 
     # Define models and go to evaluate
     tester_ = getattr(tester, cfg.TRAIN.TESTER)
