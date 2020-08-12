@@ -38,6 +38,7 @@ def gen_example(wordtoix, algo, sentences = ['this bird is red with white and ha
         sent = sent.replace("\ufffd\ufffd", " ")
         tokenizer = RegexpTokenizer(r'\w+')
         tokens = tokenizer.tokenize(sent.lower())
+
         if len(tokens) == 0:
             print('sent', sent)
             continue
@@ -60,7 +61,7 @@ def gen_example(wordtoix, algo, sentences = ['this bird is red with white and ha
         cap = captions[idx]
         c_len = len(cap)
         cap_array[i, :c_len] = cap
-    key = sent
+    key = ' '.join(tokens)
     data_dic[key] = [cap_array, cap_lens, sorted_indices]
 
     algo.generate_fake_images_with_incremental_noise(data_dic)
@@ -170,3 +171,5 @@ if __name__ == "__main__":
 
     '''generate images from pre-extracted embeddings'''
     gen_example(dataset.wordtoix, algo, [sentence])  # generate images for customized captions
+
+
