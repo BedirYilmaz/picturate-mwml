@@ -90,7 +90,7 @@ class CycleGANTester(condGANTrainer):
         netG.cuda()
         netG.eval()
         for key in data_dic:
-            save_dir = '%s/%s' % (s_tmp, key)
+            save_dir = '%s/%s' % ('res', key)
             mkdir_p(save_dir)
             captions, cap_lens, sorted_indices = data_dic[key]
 
@@ -162,7 +162,7 @@ class CycleGANTester(condGANTrainer):
             netG.cuda()
             netG.eval()
             for key in data_dic:
-                save_dir = '%s/%s' % (s_tmp, key)
+                save_dir = '%s/%s' % ('res', key)
                 mkdir_p(save_dir)
                 captions, cap_lens, sorted_indices = data_dic[key]
 
@@ -263,7 +263,7 @@ class CycleGANTester(condGANTrainer):
         netG.cuda()
         netG.eval()
         for key in data_dic:
-            save_dir = '%s/%s' % (s_tmp, key)
+            save_dir = '%s/%s' % ('res', key)
             mkdir_p(save_dir)
             captions, cap_lens, sorted_indices = data_dic[key]
 
