@@ -52,74 +52,6 @@ net_G_path = 'models/netG_epoch_500.pth'
 
 ############# CYCLE GAN ##########
 class CycleGANTester(condGANTrainer):
-
-    def generate_fake_im(self, data_dic):
-
-        global text_encoder_path, net_G_path
-        text_encoder_path = os.path.join(os.getcwd(), text_encoder_path)
-        net_G_path = os.path.join(os.getcwd(), net_G_path)
-
-        # Build and load the generator
-        #####################################
-        ## load the encoder                 #
-        #####################################
-        text_encoder = \
-            BERT_RNN_ENCODER(self.n_words, nhidden=cfg.TEXT.EMBEDDING_DIM)
-        state_dict = \
-            torch.load(text_encoder_path,
-                        map_location=lambda storage, loc: storage)
-        text_encoder.load_state_dict(state_dict)
-
-        print('Loaded text encoder from:', text_encoder_path)
-        text_encoder.eval()
-        text_encoder = text_encoder.cuda()
-
-
-        netG = G_NET()
-        ######################################
-        ## load the generator                #
-        ######################################
-
-        state_dict = \
-                        torch.load(net_G_path, map_location=lambda storage, loc: storage)
-        netG.load_state_dict(state_dict)
-        print('Load Generator from: ', net_G_path)
-        s_tmp = net_G_path[:net_G_path.rfind('.pth')]
-
-
-        netG.cuda()
-        netG.eval()
-        for key in data_dic:
-            save_dir = '%s/%s' % ('res', key)
-            mkdir_p(save_dir)
-            captions, cap_lens, sorted_indices = data_dic[key]
-
-            batch_size = captions.shape[0]
-            nz = cfg.GAN.Z_DIM
-            captions = Variable(torch.from_numpy(captions))
-            cap_lens = Variable(torch.from_numpy(cap_lens))
-
-            captions = captions.cuda()
-            cap_lens = cap_lens.cuda()
-            for i in range(1):  # 16
-                noise = Variable(torch.FloatTensor(batch_size, nz))
-                noise = noise.cuda()
-                #######################################################
-                # (1) Extract text embeddings
-                ######################################################
-                hidden = text_encoder.init_hidden(batch_size)
-                # words_embs: batch_size x nef x seq_len
-                # sent_emb: batch_size x nef
-                words_embs, sent_emb = text_encoder(captions, cap_lens, hidden)
-                mask = (captions == 0)
-                #######################################################
-                # (2) Generate fake images
-                ######################################################
-                noise.data.normal_(0, 1)
-                fake_imgs, attention_maps, _, _ = netG(noise, sent_emb, words_embs, mask)
-                
-                return fake_imgs, attention_maps
-
     
     def gen_example(self, data_dic):
 
@@ -221,7 +153,7 @@ class CycleGANTester(condGANTrainer):
                                 fullpath = '%s_a%d.png' % (save_name, k)
                                 im.save(fullpath)
         
-    def generate_fake_images_with_incremental_noise(self, data_dic):
+    def generate_fake_images_with_incremental_noise(self, data_dic, sizeim):
 
         global text_encoder_path, net_G_path
         print(os.getcwd(), os.path.join(os.getcwd(), text_encoder_path))
@@ -277,7 +209,7 @@ class CycleGANTester(condGANTrainer):
             base_noise = Variable(torch.FloatTensor(batch_size, nz))
             base_noise = base_noise.cuda()
             
-            for i in range(1000):  # 16
+            for i in range(sizeim):  # number of images to be created
                 noise = base_noise.clone()
                 noise[0][i%100] = base_noise[0][i%100] + torch.mean(base_noise)
                 #######################################################

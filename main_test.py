@@ -25,7 +25,7 @@ dir_path = (os.path.abspath(os.path.join(os.path.realpath(__file__), './.')))
 sys.path.append(dir_path)
 
 
-def gen_example(wordtoix, algo, sentences = ['this bird is red with white and has a very short beak']):
+def gen_example(wordtoix, algo, sentences = ['this bird is red with white and has a very short beak'], sizeim=100):
     '''generate images from example sentences'''
     from nltk.tokenize import RegexpTokenizer
     # filepath = '%s/example_filenames.txt' % (cfg.DATA_DIR)
@@ -64,7 +64,8 @@ def gen_example(wordtoix, algo, sentences = ['this bird is red with white and ha
     key = ' '.join(tokens)
     data_dic[key] = [cap_array, cap_lens, sorted_indices]
 
-    algo.generate_fake_images_with_incremental_noise(data_dic)
+    algo.generate_fake_images_with_incremental_noise(data_dic, sizeim)
+    
     # fake_im, _ = algo.generate_fake_im(data_dic)
 
     # fake_imt = np.transpose(fake_im[2].squeeze(0).data.cpu().numpy(), (1, 2, 0))
@@ -126,7 +127,8 @@ def gen_example_from_predefined_sentences(wordtoix, algo):
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Generate images from text descriptions with Cycle-Image-GAN')
-    parser.add_argument('--desc', type=str, default='this seagull has white wide wings and a large white chest and a long beak', help='manual seed')
+    parser.add_argument('--desc', dest='desc', type=str, default='this seagull has white wide wings and a large white chest and a long beak', help='text description')
+    parser.add_argument('--sizeim', dest='sizeim', type=int, default=100, help='number of images to be created')
     args = parser.parse_args()
     return args
 
@@ -170,6 +172,6 @@ if __name__ == "__main__":
     algo = tester_("bird_gen_test", dataloader, dataset.n_words, dataset.ixtoword)
 
     '''generate images from pre-extracted embeddings'''
-    gen_example(dataset.wordtoix, algo, [sentence])  # generate images for customized captions
+    gen_example(dataset.wordtoix, algo, [sentence], args.sizeim)  # generate images for customized captions
 
 
