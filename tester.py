@@ -40,8 +40,12 @@ import argparse
 import torchvision.transforms as transforms
 from trainer import condGANTrainer
 
-text_encoder_path = '/mnt/tera/code/python/GANS/cycle-image-gan/output/Training_birds_STREAM_2020_07_22_10_13_59/Model/text_encoder550.pth'
-net_G_path = '/mnt/tera/code/python/GANS/cycle-image-gan/output/Training_birds_cycle_2020_07_23_11_07_20/Model/netG_epoch_500.pth'
+# text_encoder_path = '/mnt/tera/code/python/GANS/cycle-image-gan/output/Training_birds_STREAM_2020_07_22_10_13_59/Model/text_encoder550.pth'
+# net_G_path = '/mnt/tera/code/python/GANS/cycle-image-gan/output/Training_birds_cycle_2020_07_23_11_07_20/Model/netG_epoch_500.pth'
+text_encoder_path = 'models/text_encoder550.pth'
+net_G_path = 'models/netG_epoch_500.pth'
+
+
 
 
 # ################# Text to image task############################ #
@@ -52,6 +56,8 @@ class CycleGANTester(condGANTrainer):
     def generate_fake_im(self, data_dic):
 
         global text_encoder_path, net_G_path
+        text_encoder_path = os.path.join(os.getcwd(), text_encoder_path)
+        net_G_path = os.path.join(os.getcwd(), net_G_path)
 
         # Build and load the generator
         #####################################
@@ -118,6 +124,9 @@ class CycleGANTester(condGANTrainer):
     def gen_example(self, data_dic):
 
         global text_encoder_path, net_G_path
+
+        text_encoder_path = os.path.join(os.getcwd(), text_encoder_path)
+        net_G_path = os.path.join(os.getcwd(), net_G_path)
 
         if net_G_path == '':
             print('Error: the path for models is not found!')
@@ -215,11 +224,18 @@ class CycleGANTester(condGANTrainer):
     def generate_fake_images_with_incremental_noise(self, data_dic):
 
         global text_encoder_path, net_G_path
-
+        print(os.getcwd(), os.path.join(os.getcwd(), text_encoder_path))
+        text_encoder_path = os.path.join(os.getcwd(), text_encoder_path)
+        net_G_path = os.path.join(os.getcwd(), net_G_path)
+        
         # Build and load the generator
         #####################################
         ## load the encoder                 #
         #####################################
+
+        print('Loading text encoder from:', text_encoder_path)
+
+
         text_encoder = \
             BERT_RNN_ENCODER(self.n_words, nhidden=cfg.TEXT.EMBEDDING_DIM)
         state_dict = \

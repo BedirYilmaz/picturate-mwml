@@ -122,6 +122,9 @@ def gen_example_from_predefined_sentences(wordtoix, algo):
     algo.gen_example(data_dic)
 
 if __name__ == "__main__":
+
+    # print(os.getcwd())
+    # exit(0)
     
     cfg_path = "cfg/bird_cycle.yaml"
 
