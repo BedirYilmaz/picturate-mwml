@@ -14,7 +14,6 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from miscc.config import cfg
 from GlobalAttention import GlobalAttentionGeneral as ATT_NET
-from pytorch_pretrained_bert import BertModel
 from transformers import BertModel as HBertModel
 
 
