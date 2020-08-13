@@ -6,7 +6,7 @@
 Based on https://github.com/suetAndTie/cycle-image-gan
 Paper https://arxiv.org/abs/2003.12137
 
-## MadeWithML Project
+## A MadeWithML 2020 Summer Incubator Camp Project
 * BERT encoder
 * Cycle-GAN
 * Image2Text encoder
