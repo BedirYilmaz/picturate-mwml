@@ -1,3 +1,7 @@
+
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YkrdEw34m6Pfx2axJvDNsfzfcOJBOx-5?usp=sharing)
+
 # cycle-image-gan
 Based on https://github.com/taoxugit/AttnGAN/tree/master/code
 
