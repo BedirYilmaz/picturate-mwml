@@ -2,12 +2,11 @@
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YkrdEw34m6Pfx2axJvDNsfzfcOJBOx-5?usp=sharing)
 
-# cycle-image-gan
-Based on https://github.com/taoxugit/AttnGAN/tree/master/code
-
+# picturate
+Based on https://github.com/suetAndTie/cycle-image-gan
 Paper https://arxiv.org/abs/2003.12137
 
-## Spring 2019 CS 224U Project
+## MadeWithML Project
 * BERT encoder
 * Cycle-GAN
 * Image2Text encoder
